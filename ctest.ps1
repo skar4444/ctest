@@ -1,3 +1,14 @@
+if(Test-path ".\FileLogging.ps1")
+{
+. .\FileLogging.ps1
+} else {
+    # Redefine as this
+    Function Write-LogFileEntry ($message, $Level, $IncludeErrorVar, $ClearErrorAfterLogging, $DoNotPrintToScreen )
+    {
+        Write-host $message
+    }
+}
+
 Function Get-CredManCreds()
 {
 
