@@ -1,11 +1,35 @@
-if(Test-path ".\FileLogging.ps1")
+function Compile-Csharp ()
 {
-. .\FileLogging.ps1
-} else {
-    # Redefine as this
-    Function Write-LogFileEntry ($message, $Level, $IncludeErrorVar, $ClearErrorAfterLogging, $DoNotPrintToScreen )
+    param(
+    [String] $code, 
+    [Array] $References
+    )
+
+    $cp = new-object Microsoft.CSharp.CSharpCodeProvider
+    $framework = $([System.Runtime.InteropServices.RuntimeEnvironment]::GetRuntimeDirectory())
+
+    # Optional Array of Reference assemblies to be added
+    $refs = New-Object Collections.ArrayList
+    $refs.AddRange( @("${framework}\System.dll"))
+    if ($references.Count -ge 1)
     {
-        Write-host $message
+        $refs.AddRange($References)
+    }
+
+    $cpar = New-Object System.CodeDom.Compiler.CompilerParameters
+    $cpar.GenerateInMemory = $true
+    $cpar.GenerateExecutable = $false
+    $cr = $cp.CompileAssemblyFromSource($cpar, $code)
+
+    if ( $cr.Errors.Count)
+    {
+        $codeLines = $code.Split("`n");
+        foreach ($ce in $cr.Errors)
+        {
+            Write-LogFileEntry "Error: $($codeLines[$($ce.Line - 1)])" -DoNotPrintToScreen
+            $ce |out-default
+        }
+        Throw "INVALID DATA: Errors encountered while compiling code"
     }
 }
 
